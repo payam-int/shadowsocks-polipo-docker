@@ -1,8 +1,19 @@
-FROM ubuntu:18.04
+FROM acrisliu/shadowsocks-libev
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends shadowsocks-libev parallel polipo \
-    && rm -rf /var/lib/apt/lists/*
+USER root
+
+RUN set -xe \
+    && apk add --no-cache build-base openssl \
+    && wget https://github.com/jech/polipo/archive/master.zip -O polipo.zip \
+    && unzip polipo.zip \
+    && cd polipo-master \
+    && make \
+    && install polipo /usr/local/bin/ \
+    && cd .. \
+    && rm -rf polipo.zip polipo-master \
+    && mkdir -p /usr/share/polipo/www /var/cache/polipo \
+    && apk del build-base openssl
+
 
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod a+x /entrypoint.sh
