@@ -40,8 +40,8 @@ PRIV_KEY=`echo -n $ACCESS_KEY | sed -E 's/.*ss\:\/\/([^@]+).*/\1/'`
 PRIV_KEY_DECODED=`echo $PRIV_KEY==== | fold -w 4 | sed '$ d' | tr -d '\n' | base64 -di`
 METHOD=`echo -n $PRIV_KEY_DECODED | cut -d ":" -f 1`
 PASSWORD=`echo -n $PRIV_KEY_DECODED | cut -d ":" -f 2`
-HOST=`echo -n $ACCESS_KEY | sed -E 's/.*ss\:\/\/[^@]+\@([\d\.]+).*/\1/'`
-PORT=`echo -n $ACCESS_KEY | sed -E 's/.*ss\:\/\/[^@]+\@[\d\.]+\:([\d]+).*/\1/'`
+HOST=`echo -n $ACCESS_KEY | sed -E 's/.*ss\:\/\/[^@]+\@([0-9\.]+).*/\1/'`
+PORT=`echo -n $ACCESS_KEY | sed -E 's/.*ss\:\/\/[^@]+\@[0-9\.]+\:([0-9]+).*/\1/'`
 
 
 
@@ -70,6 +70,8 @@ Environment=\"NO_PROXY=$NO_PROXIES\"
 	systemctl restart docker
 fi
 
+docker rm --force ${CONTAINER_NAME}
+
 docker run -d --restart unless-stopped -p ${BINDING_HOST}:${BINDING_HTTP_PORT}:7551 \
   -p ${BINDING_HOST}:${BINDING_SOCKS_PORT}:7550 -e SERVER_HOST=${HOST} -e SERVER_PORT=${PORT} \
-  -e ENCRYPT_METHOD=${METHOD} --name ${CONTAINER_NAME} payamint/shadowsocks-polipo-docker:latest
+  -e ENCRYPT_METHOD=${METHOD} -e PASSWORD=${PASSWORD} --name ${CONTAINER_NAME} payamint/shadowsocks-polipo-docker:latest
